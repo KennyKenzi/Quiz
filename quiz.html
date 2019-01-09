@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" href="style.css">
+  <!-- <link href="http://code.ionicframework.com/ionicons/2.0.1/css/ionicons.min.css" rel="stylesheet" type="text/css"> -->
+</head>
+<body>
+    <div class="mainframe">
+        <div class="centreframe">
+            <div class="tabs_container">
+                <div class="tab">
+                    <button class="tablinks_quest" >Set Questions</button>
+                    <button class="tablinks_quiz" >Start Quiz</button>
+                </div>
+
+                <div id="set_quest" class="tabcontent">
+                    <h2>Enter Questions Below</h2>
+                        <div>
+                            <label> Question </label>
+                            <br>
+                            <input type="text" class="question_field"></input>
+                            <br>
+                            <div class="opt_container">
+                                <h4>Enter Options below</h4>
+                                <div>
+                                    <label class="tooltip"> Options 
+                                        <span class="tooltiptext">Separate each option with a comma(Option 1, Option2, Opt...)</span>
+                                    </label>
+                                </div>
+                                
+                            </div>
+
+                            <div>
+                                <input type="text" class="option_field"></input>
+                            </div>
+                            <br>
+                            <div>
+                                <label>Answer</label>
+                                <input type="number" class="answer_field"></input>
+                            </div>
+                            <!-- <label> Option 2 </label>
+                            <input type="text" class="option_field_2"></input>
+                            <br>
+                            <label> Option 3 </label>
+                            <input type="text" class="option_field_3"></input>
+                            <br>
+                            <label> Option 4 </label>
+                            <input type="text" class="option_field"></input> -->
+                            <br>
+                            <div>
+                                <input type="button" class="save_quest" value="Save"></input>
+                                <br>
+                                <input type="number" disabled value="0" class="question_count"></input>
+                            </div>
+                        </div>
+                </div>
+
+                <div id="start_quiz" class="tabcontent">
+                    <h3> Answer Question</h3>
+
+                    <div class= "quest_contain">
+                        <div class= "head">Question</div>
+                        <div class="question" id="curr_quest">PlaceHolder</div>   
+                    </div>
+
+                    <div class="opt_contain">
+                        <div class="head">Options</div>
+                        <div class= "option_container" id="option_container">
+                                <input type="radio" class="options">&option&</input><br>
+                        </div>
+                    </div>
+
+                    <div class="next_container" >
+                        <input type="button" value="Next Question" id="next_button" class="submit_button">
+                    </div>
+
+                    <div class="score_container">
+                          <input type="number" value=0 class="score">
+                    </div>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+    <script src="quiz.js"></script>
+</body>
