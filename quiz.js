@@ -9,6 +9,8 @@ var main = (function(){
 }
     
     var questArr = []
+    var scoreTotal = 0 
+    var corrTotal = 0
    
     return{
 
@@ -22,6 +24,11 @@ var main = (function(){
 
         },
 
+        retScore:function(){
+            return{
+                scoreTotal, corrTotal
+            }
+        },
         storeQuest: function(quest, options, answer){
             if(quest !== undefined){
             //console.log("function to store question was called");
@@ -32,7 +39,7 @@ var main = (function(){
             questArr.push(curr)
             
             }
-            console.log(questArr)
+            //console.log(questArr)
                 return{
                     questArr
                 }
@@ -44,25 +51,61 @@ var main = (function(){
             var rand, obj,randAns,randOpt,randQuest, randID
 
             rand = Math.floor((Math.random()*totArr.length));
-            console.log('randomly generated number: '+rand)
-
+            //console.log('randomly generated number: '+rand)
             obj = totArr[rand]
 
             randID=obj.id
             randQuest= obj.question
             randOpt = obj.options
             randAns= obj.answer
-
+         
+         
             return{   
                 randQuest, randOpt, randAns, randID
             }
  
         },
 
-        checkAnswer: function(respArr, ans){
-            console.log(respArr)
-            console.log(ans)
-                
+        checkAnswer: function(respArr,ans){
+    
+            var count = 0
+            var correct
+
+            for(var i=0; i<respArr.length; i++){
+                if(respArr[i] === true){
+                    count ++;
+                }else { } 
+            }
+
+            if (count === 1){
+                if(respArr[ans-1] === true){
+                    correct = true
+                }else{
+                    correct = false
+                }
+
+            }else{
+                correct = false
+            }
+            return correct
+            
+        },
+
+        keepScore: function(corr){
+            // console.log('show if correct is true or false')
+            // console.log(corr)
+            if (corr === true){
+                scoreTotal++
+                corrTotal++
+            }else{
+                scoreTotal++
+            }
+
+           console.log(scoreTotal, corrTotal)
+            return {
+                scoreTotal,
+                corrTotal
+            }
         }
 
     }
@@ -89,7 +132,8 @@ var uicontroller = (function(){
         questdisplayed:'question',
         options:'options',
         current_question: 'curr_quest',
-        next_button:'#next_button'
+        next_button:'#next_button',
+        final:'.final'
 
     }
 
@@ -143,22 +187,19 @@ var uicontroller = (function(){
         },
 
         getResponse: function(){
-            var len, id, opt, respArr, ans
+            var len, id, opt, respArr
             respArr = []
             
             len = document.getElementsByClassName(DOMList.options).length
-            // console.log(len)
+            
             for (var i=0; i<len; i++){
                 id = 'id-'+i
                 opt = document.getElementById(id).checked
-                respArr.push(opt)   
-            }
+                respArr.push(opt) 
 
-            //ans = document.getElementById(DOMList.next_button).value
-            console.log(respArr)
-            return{
-                respArr
             }
+            return respArr
+            
         }
 
     }
@@ -171,6 +212,7 @@ var uicontroller = (function(){
 var controller = (function(first, uicon){
     
     var domAccess = uicon.DOMs()
+    var rands
 
     var eventhandler = function(){
         //click Question tab
@@ -187,32 +229,45 @@ var controller = (function(first, uicon){
         //click quest tab
         document.getElementById(domAccess.start_quiz).style.display = 'none';
         document.getElementById(domAccess.set_quest).style.display = 'block';
+       
     }
 
     var nextQuest = function(){
-       var resp
+       var resp, corr, score
+       
+       
 
        //get response from radio buttons
        resp = uicon.getResponse()
-        //check answer
-      // main.checkAnswer()
-        console.log('called rands:')
-        console.log(clickQuiz().rands)
+       
+       //check if answer is correct
+       corr = first.checkAnswer(resp, rands.randAns)
+
+       //keep score
+       score = first.keepScore(corr)
+       
+       if (score.corrTotal < 5){
+        nxtQ()
+        }else {
+            console.log('nope')
+            document.getElementById(domAccess.start_quiz).style.display = 'none';
+
+            var html = '<div class="final">&Placeholder&</div>'
+            var calcScore = (score.corrTotal/score.scoreTotal)*100
+            var newhtml = html.replace('&Placeholder&', 'Your Score is '+calcScore+'%')
+            document.querySelector('.tabs_container').insertAdjacentHTML('beforeend', newhtml)
+           
+
+    }
+
     }
 
     var clickQuiz = function(){
-        var rands, tri
+        var tri
         document.getElementById(domAccess.set_quest).style.display = 'none';
         document.getElementById(domAccess.start_quiz).style.display = 'block';
 
-        //clear all and start again
-        uicon.removeCurr()
-        //get rand obj
-        rands = first.getRandObj(first.storeQuest().questArr)
-        console.log("rand:")
-        console.log(rands)
-        //display quetsion and options
-        tri= uicon.displayQuest(rands.randQuest, rands.randOpt, rands.randAns) 
+        nxtQ()
 
     }
 
@@ -245,12 +300,23 @@ var controller = (function(first, uicon){
         }
       
     }
-
+    var nxtQ = function(){
+        //clear all and start again
+        uicon.removeCurr()
+        
+        //get rand obj
+        rands = first.getRandObj(first.storeQuest().questArr)
+        
+        //display quetsion and options
+        uicon.displayQuest(rands.randQuest, rands.randOpt, rands.randAns) 
+        
+    }
 
 
     return{
         init: function(){
             eventhandler()
+            
         }
     }
     
