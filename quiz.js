@@ -24,11 +24,6 @@ var main = (function(){
 
         },
 
-        retScore:function(){
-            return{
-                scoreTotal, corrTotal
-            }
-        },
         storeQuest: function(quest, options, answer){
             if(quest !== undefined){
             //console.log("function to store question was called");
@@ -40,9 +35,8 @@ var main = (function(){
             
             }
             //console.log(questArr)
-                return{
-                    questArr
-                }
+                return  questArr
+                
         },
 
         getRandObj: function(totArr){
@@ -212,7 +206,7 @@ var uicontroller = (function(){
 var controller = (function(first, uicon){
     
     var domAccess = uicon.DOMs()
-    var rands
+    var rands,  alls
 
     var eventhandler = function(){
         //click Question tab
@@ -268,13 +262,12 @@ var controller = (function(first, uicon){
         document.getElementById(domAccess.start_quiz).style.display = 'block';
 
         nxtQ()
-
     }
 
 
 
     var saveIt = function(){
-        var inputs, splitsOpt, counter, alls
+        var inputs, splitsOpt, counter
         //1. get inputs
         inputs = uicon.getInput()
 
@@ -295,9 +288,6 @@ var controller = (function(first, uicon){
         }else{
             alert('Something appears to be wrong')
         }
-        return{
-            alls
-        }
       
     }
     var nxtQ = function(){
@@ -305,7 +295,7 @@ var controller = (function(first, uicon){
         uicon.removeCurr()
         
         //get rand obj
-        rands = first.getRandObj(first.storeQuest().questArr)
+        rands = first.getRandObj(alls)
         
         //display quetsion and options
         uicon.displayQuest(rands.randQuest, rands.randOpt, rands.randAns) 
