@@ -6,7 +6,7 @@ var main = (function(){
         this.question = question;
         this.options = options;
         this.answer = answer;
-}
+    }
     
     var questArr = []
     var scoreTotal = 0 
@@ -15,18 +15,31 @@ var main = (function(){
     return{
 
         splitOptions: function(options){
-            var optArr
-            optArr = options.split(',')
+
+            //split options
+            var unTrimmed = options.split(',')
+
+            //trim white spaces
+            var unFiltered = unTrimmed.map(el=>{
+                return el.trim()
+            })
+
+            //filter out empty string
+            var optArr = unFiltered.filter(function (el) {
+                return el != "" || undefined;
+            });
+
 
             return{
-             optArr
+             optArr: optArr,
+             length: optArr.length
             }
 
         },
 
         storeQuest: function(quest, options, answer){
             if(quest !== undefined){
-            //console.log("function to store question was called");
+
             var ID, curr
             
             ID = (questArr.length)
@@ -34,18 +47,17 @@ var main = (function(){
             questArr.push(curr)
             
             }
-            //console.log(questArr)
+
                 return  questArr
                 
         },
 
         getRandObj: function(totArr){
-            //console.log(totArr)
-            //console.log("array length: "+totArr.length)
+
             var rand, obj,randAns,randOpt,randQuest, randID
 
             rand = Math.floor((Math.random()*totArr.length));
-            //console.log('randomly generated number: '+rand)
+
             obj = totArr[rand]
 
             randID=obj.id
@@ -61,7 +73,6 @@ var main = (function(){
         },
 
         checkAnswer: function(respArr,ans){
-    
             var count = 0
             var correct
 
@@ -85,9 +96,13 @@ var main = (function(){
             
         },
 
+        clearScore: function(){
+            scoreTotal = 0
+            corrTotal = 0
+        },
+
         keepScore: function(corr){
-            // console.log('show if correct is true or false')
-            // console.log(corr)
+
             if (corr === true){
                 scoreTotal++
                 corrTotal++
@@ -95,7 +110,6 @@ var main = (function(){
                 scoreTotal++
             }
 
-           console.log(scoreTotal, corrTotal)
             return {
                 scoreTotal,
                 corrTotal
@@ -115,7 +129,8 @@ var uicontroller = (function(){
         answer_field: '.answer_field',
         tablinks_quest:'.tablinks_quest',
         tablinks_quiz: '.tablinks_quiz',
-        save_quest: '.save_quest',
+        save_quest: '.save_quest',  
+        clear_quest: '.clear_quest',
         start_quiz: 'start_quiz',
         set_quest:'set_quest',
         question_count: '.question_count',
@@ -127,7 +142,11 @@ var uicontroller = (function(){
         options:'options',
         current_question: 'curr_quest',
         next_button:'#next_button',
-        final:'.final'
+        final:'.final',
+        score: '.score',
+        final: '.final',
+        grade: '#grade',
+        correctNumber: '.correctNumber'
 
     }
 
@@ -145,29 +164,49 @@ var uicontroller = (function(){
             }
         },
 
+        clearInput: function(){
+
+            document.querySelector(DOMList.question_field).value = ""
+            document.querySelector(DOMList.option_field).value = ""
+            document.querySelector(DOMList.answer_field).value = ""
+            
+        },
+
         displayQuest: function(question, options, ans){
 
+           
 
             var htmlq, htmlo, newhtmlo, newhtmlq
 
-            htmlq = '<div class="question" id="curr_quest">&question&</div>' ;
+            htmlq = '<div class="question h1 text-primary" id="curr_quest">&question&</div>' ;
             htmlo = '<input type="radio" class="options" id="id-&id&">&option&</input><br>';
 
-            newhtmlq = htmlq.replace('&question&', question);
-            document.querySelector(DOMList.quest_contain).insertAdjacentHTML('beforeend', newhtmlq)
-            // console.log(options)
-            // console.log(options.length)
 
-            options.forEach((element,index) => { 
-                newhtmlo = htmlo.replace('&option&', element)
-                newhtmlo = newhtmlo.replace('&id&', index)
-                document.querySelector(DOMList.option_container).insertAdjacentHTML('beforeend', newhtmlo)
-            });
+                newhtmlq = htmlq.replace('&question&', question);
+                document.querySelector(DOMList.quest_contain).insertAdjacentHTML('beforeend', newhtmlq)
+    
+                options.forEach((element,index) => { 
+                    newhtmlo = htmlo.replace('&option&', element)
+                    newhtmlo = newhtmlo.replace('&id&', index)
+                    document.querySelector(DOMList.option_container).insertAdjacentHTML('beforeend', newhtmlo)
+                });
+    
+                return{
+                    question, options, ans
+                }
+           
 
-            return{
-                question, options, ans
-            }
+        },
 
+        answerLimit: function(){
+            var correctNum = document.querySelector(DOMList.correctNumber).value
+
+            return correctNum
+        },
+
+        displayScore: function(correctScore){
+
+            document.querySelector(DOMList.score).value = correctScore
         },
 
         removeCurr: function(){
@@ -204,9 +243,12 @@ var uicontroller = (function(){
 
 
 var controller = (function(first, uicon){
+
+
     
     var domAccess = uicon.DOMs()
-    var rands,  alls
+    var rands,  alls, counter
+    var finalScoreUp = false
 
     var eventhandler = function(){
         //click Question tab
@@ -215,13 +257,20 @@ var controller = (function(first, uicon){
         document.querySelector(domAccess.tablinks_quiz).addEventListener('click', clickQuiz)
         //click save button
         document.querySelector(domAccess.save_quest).addEventListener('click', saveIt )
+        //click save button
+        document.querySelector(domAccess.clear_quest).addEventListener('click', clearIt )
         //click  next question
         document.querySelector(domAccess.next_button).addEventListener('click', nextQuest )
     }
 
     var clickQuest = function(){
         //click quest tab
+        if(finalScoreUp == true){
+            document.querySelector(domAccess.final).style.display = 'none';
+            finalScoreUp = false
+        }
         document.getElementById(domAccess.start_quiz).style.display = 'none';
+        
         document.getElementById(domAccess.set_quest).style.display = 'block';
        
     }
@@ -229,8 +278,6 @@ var controller = (function(first, uicon){
     var nextQuest = function(){
        var resp, corr, score
        
-       
-
        //get response from radio buttons
        resp = uicon.getResponse()
        
@@ -239,70 +286,118 @@ var controller = (function(first, uicon){
 
        //keep score
        score = first.keepScore(corr)
-       
-       if (score.corrTotal < 5){
-        nxtQ()
+
+       //display Score
+       uicon.displayScore(score.corrTotal)
+
+
+        if (score.corrTotal < uicon.answerLimit()){
+
+            nxtQ()
+
         }else {
-            console.log('nope')
+            finalScoreUp = true
             document.getElementById(domAccess.start_quiz).style.display = 'none';
 
-            var html = '<div class="final">&Placeholder&</div>'
-            var calcScore = (score.corrTotal/score.scoreTotal)*100
-            var newhtml = html.replace('&Placeholder&', 'Your Score is '+calcScore+'%')
+            var html = '<div class="final" id="grade">Your Score is <div class="text-&color&">&Placeholder&</div></div>'
+            var calcScore = ((score.corrTotal/score.scoreTotal)*100).toFixed(2)
+            var newColor = calcScore>50 ?'success' : 'danger'
+            var newhtml = html.replace('&Placeholder&', ' '+calcScore+'%')
+            newhtml = newhtml.replace('&color&', newColor)
             document.querySelector('.tabs_container').insertAdjacentHTML('beforeend', newhtml)
-           
-
-    }
+            
+        }
 
     }
 
     var clickQuiz = function(){
-        var tri
-        document.getElementById(domAccess.set_quest).style.display = 'none';
-        document.getElementById(domAccess.start_quiz).style.display = 'block';
 
-        nxtQ()
-    }
+        if(uicon.answerLimit()>0){
 
-
-
-    var saveIt = function(){
-        var inputs, splitsOpt, counter
-        //1. get inputs
-        inputs = uicon.getInput()
-
-        if(inputs.quest !=="" && inputs.options!=="" && inputs.answer!==""){
-
-            //2. split options
-            splitsOpt = first.splitOptions(inputs.options)
-
-            //3. store input
-            alls = first.storeQuest(inputs.quest, splitsOpt.optArr, inputs.answer)
-            //console.log('output from 1:'+alls)
-
-            //4. increase counter
-            counter = parseInt(document.querySelector(domAccess.question_count).value) + 1
-            document.querySelector(domAccess.question_count).value = counter
-            //
+            if(finalScoreUp == true){
+                document.querySelector(domAccess.final).style.display = 'none';
+                finalScoreUp = false
+            }
+            
+            first.clearScore()
+            document.querySelector(domAccess.score).value = 0
+            document.getElementById(domAccess.set_quest).style.display = 'none';
+            document.getElementById(domAccess.start_quiz).style.display = 'block';
+    
+            nxtQ()
 
         }else{
-            alert('Something appears to be wrong')
+            alert('Set a valid limit')
         }
+
+        
+    }
+
+
+    //Save and store questions and answer
+    var saveIt = function(){
+        var inputs, splitsOpt
+        //1. get inputs
+        inputs = uicon.getInput()
+           
+        //2. split options
+        splitsOpt = first.splitOptions(inputs.options)
+
+
+        //2.5 make sure answer exists
+        if(inputs.answer < 1 || inputs.answer > splitsOpt.length){
+
+            alert('Something appears to be wrong with your answer')
+
+        } else{
+            
+            if(inputs.quest !=="" && inputs.options!=="" && inputs.answer!==""){
+
+                //3. store input
+                alls = first.storeQuest(inputs.quest, splitsOpt.optArr, inputs.answer)
+
+    
+                //4. increase counter
+                counter = parseInt(document.querySelector(domAccess.question_count).value) + 1
+                document.querySelector(domAccess.question_count).value = counter
+                //5. clear field
+               // uicon.clearInput()
+    
+    
+            }else{
+                alert('Something appears to be wrong with your inputs')
+            }
+        }
+
+
+        
       
     }
-    var nxtQ = function(){
-        //clear all and start again
-        uicon.removeCurr()
-        
-        //get rand obj
-        rands = first.getRandObj(alls)
-        
-        //display quetsion and options
-        uicon.displayQuest(rands.randQuest, rands.randOpt, rands.randAns) 
-        
+
+    var clearIt= function(){
+        alls = [];
+        counter = 0
+        document.querySelector(domAccess.question_count).value = counter
+        //clear field
+        uicon.clearInput()
     }
 
 
+    //shows next question at random
+    var nxtQ = function(){
+
+        if(alls){
+            //clear all and start again
+            uicon.removeCurr()
+        
+            //get rand obj
+            rands = first.getRandObj(alls)
+        
+            //display quetsion and options
+            uicon.displayQuest(rands.randQuest, rands.randOpt, rands.randAns) 
+        } 
+    }
+    
     return{
         init: function(){
             eventhandler()
@@ -310,7 +405,7 @@ var controller = (function(first, uicon){
         }
     }
     
-
+    
 })(main, uicontroller)
 
 controller.init()
